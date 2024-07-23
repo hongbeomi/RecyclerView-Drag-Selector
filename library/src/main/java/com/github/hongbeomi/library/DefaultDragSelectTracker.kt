@@ -1,10 +1,14 @@
 package com.github.hongbeomi.library
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class DefaultDragSelectTracker private constructor(
     private val receiver: DragSelectReceiver,
@@ -103,7 +107,7 @@ class DefaultDragSelectTracker private constructor(
 
             isInTopHotspot || isInBottomHotspot -> {
                 log("Left the hotspot")
-                autoScroller.removeCallback()
+                autoScroller.stopAutoScroll()
                 isInTopHotspot = false
                 isInBottomHotspot = false
             }
@@ -143,7 +147,7 @@ class DefaultDragSelectTracker private constructor(
         isDragSelectActive = false
         isInTopHotspot = false
         isInBottomHotspot = false
-        autoScroller.removeCallback()
+        autoScroller.stopAutoScroll()
     }
 
     private fun selectRange(
@@ -204,7 +208,7 @@ class DefaultDragSelectTracker private constructor(
         maxReached = -1
         isInTopHotspot = false
         isInBottomHotspot = false
-        autoScroller.removeCallback()
+        autoScroller.stopAutoScroll()
         initialSelection = Selection(isSelected = false, index = -1)
     }
 
@@ -216,31 +220,29 @@ class DefaultDragSelectTracker private constructor(
 
     private inner class AutoScroller {
 
-        private val handler = Handler(Looper.getMainLooper())
         private val delay = 25L
 
         private var recyclerView: RecyclerView? = null
         private var velocity: Int = 0
+        private var autoScrollJob: Job? = null
 
-        private val runnable = object : Runnable {
-            override fun run() {
-                if (isInTopHotspot) {
-                    recyclerView?.scrollBy(0, -velocity)
-                    handler.postDelayed(this, delay)
-                } else if (isInBottomHotspot) {
-                    recyclerView?.scrollBy(0, velocity)
-                    handler.postDelayed(this, delay)
+        fun startAutoScroll() {
+            stopAutoScroll()
+            autoScrollJob = CoroutineScope(Dispatchers.Main).launch {
+                while (isActive) {
+                    if (isInTopHotspot) {
+                        recyclerView?.scrollBy(0, -velocity)
+                    } else if (isInBottomHotspot) {
+                        recyclerView?.scrollBy(0, velocity)
+                    }
+                    delay(delay)
                 }
             }
         }
 
-        fun startAutoScroll() {
-            removeCallback()
-            handler.postDelayed(runnable, delay)
-        }
-
-        fun removeCallback() {
-            handler.removeCallbacks(runnable)
+        fun stopAutoScroll() {
+            autoScrollJob?.cancel()
+            autoScrollJob = null
         }
 
         fun setRecyclerView(view: RecyclerView) {
