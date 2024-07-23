@@ -21,11 +21,6 @@ class MainActivity : AppCompatActivity() {
             override fun setSelected(index: Int, selected: Boolean) {
                 val item = listAdapter.currentList.getOrNull(index) ?: return
                 if (item.isSelected != selected) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Selected letters: ${item.title}",
-                        Toast.LENGTH_SHORT
-                    ).show()
                     viewModel.toggleSelect(item)
                 }
             }

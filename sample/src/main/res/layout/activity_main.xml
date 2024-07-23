@@ -16,12 +16,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/switchIsActive"
-            android:checked="true"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center|end" />
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="Drag Select Mode"
+            android:textSize="22sp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchIsActive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:checked="true" />
 
     </FrameLayout>
 
